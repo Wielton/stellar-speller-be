@@ -50,12 +50,11 @@ def user_register():
     data = request.json
     username = data.get('username')
     password_input = data.get('password')
+    if username is None:
+        return jsonify("Username required"), 422
     if password_input is None:
         return jsonify("Password required"), 422
     encrypted_password = encrypt_password(password_input)
-    if username is None:
-        return jsonify("Username required"), 422
-
     run_query("INSERT INTO users (username, password) VALUES (?,?)", [ username, encrypted_password ])
     
     # Use cursor.lastRow() instead of using a SELECT query
@@ -68,15 +67,12 @@ def user_register():
     # INSERT session_token into user_session
     run_query("INSERT INTO user_session (user_id,session_token) VALUES (?,?)", [user_id,session_token])
     
-    # Construct a resp object
-    resp = []
-    for data in user_data:
-        user = {}
-        user['userId'] = data[0]
-        user['username'] = data[1]
-        user['sessionToken'] = session_token
-        resp.append(user)
-    return jsonify(resp)
+    # Construct a resp object where each element of the Dict is set as a user{object}
+    user = {}
+    user['userId'] = user_id
+    user['username'] = username
+    user['sessionToken'] = session_token
+    return jsonify(user)
 # Manager redirected to logged-in where they see  
 
 
